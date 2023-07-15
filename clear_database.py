@@ -16,5 +16,6 @@ if input()=='1':
 
     # 关闭Connection:
     conn.close()
+    print("finfish.")
 else:
     print("end.")

@@ -8,9 +8,9 @@ import tkinter.messagebox
 from tkinter.scrolledtext import ScrolledText
  
 IPpublic='163.53.247.57'
-portpublic=10763
+portpublic=52169
 #公网IP 若为TCP协议可以cmd PING  注意公私端口区别  #私：127.0.0.1：30000
-version='0.0.2  '
+version='0.0.3  '
 
 
 ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'         # 时间格式声明
@@ -22,7 +22,8 @@ def Login_gui_run():
     frm = Frame(root)
     root.geometry('400x300')  
     nickname = StringVar()# 昵称变量
-    password = StringVar()                                      
+    password = StringVar()  
+    s.connect((IPpublic,portpublic))                                     # 建立连接  公网IP 若为TCP协议可以cmd PING  注意公私端口区别  #私：127.0.0.1：30000
 
     ###登录
     def login_in():                                             
@@ -38,20 +39,47 @@ def Login_gui_run():
             elif len(key)>30:
                 password.set('')
             else:
-                s.connect((IPpublic,portpublic))                     # 建立连接  公网IP 若为TCP协议可以cmd PING  注意公私端口区别  #私：127.0.0.1：30000
+                                    
                 s.send(name.encode('utf-8'))# 传递用户昵称
                 if s.recv(2).decode('utf-8') != 'ok':
                     tkinter.messagebox.showwarning('Warning', message='connection err.')
                     root.destroy()
                 s.send(key.encode('utf-8'))
+                s.send('log'.encode('utf-8'))
                 if s.recv(4).decode('utf-8') == 'err1':
                     tkinter.messagebox.showwarning('Warning', message='password err.')
                     root.destroy() 
                 else:
                     root.destroy() 
                     Chat_gui_run()                                      # 打开聊天窗口 
-                     
- 
+                    
+    def sign_up():
+        name = nickname.get()                                   # 长度是考虑用户列表那边能否完整显示
+        if not name:
+            tkinter.messagebox.showwarning('Warning', message='Enter your name please.')
+        elif len(name)>13:
+            tkinter.messagebox.showwarning('Warning', message='max length=13.')
+        else:                                  
+            key = password.get()                                   
+            if not key:
+                tkinter.messagebox.showwarning('Warning', message='Enter your key please.')
+            elif len(key)>30:
+                password.set('')
+                
+            else:
+                #s.connect((IPpublic,portpublic))                     # 建立连接  公网IP 若为TCP协议可以cmd PING  注意公私端口区别  #私：127.0.0.1：30000
+                s.send(name.encode('utf-8'))# 传递用户昵称
+                if s.recv(2).decode('utf-8') != 'ok':
+                    tkinter.messagebox.showwarning('Warning', message='connection err.')
+                    root.destroy()
+                s.send(key.encode('utf-8'))
+                s.send('sig'.encode('utf-8'))
+                if s.recv(2).decode('utf-8')=='ok':
+                    tkinter.messagebox.showwarning('Warning', message='Sign up completed.√')
+                    root.destroy()
+                    s.recv(3).decode('utf-8')
+                    Chat_gui_run()
+                        
  
     # 按钮、输入提示标签、输入框
 
@@ -64,7 +92,7 @@ def Login_gui_run():
     Label(root, text='Notice: The maxium number of online users is *20*.', font=('Verdana',8),fg='dimgray').place(x=1, y=175, height=50, width=398)
     Button(root, text = ">", font=('Verdana', 12),bg='aqua',fg='black',command = login_in, width = 8, height = 1).place(x=150, y=230, width=100, height=35)
 
-    Button(root, text = "sign up",relief='flat', font=('Verdana', 8),fg='thistle',activeforeground='white',command = login_in, width = 8, height = 1).place(x=175, y=270, width=50, height=19)
+    Button(root, text = "sign up",relief='flat', font=('Verdana', 8),fg='thistle',activeforeground='white',command = sign_up, width = 8, height = 1).place(x=175, y=270, width=50, height=19)
     
     root.mainloop()
  
@@ -72,7 +100,7 @@ def Login_gui_run():
   
 
 # 聊天窗口
-def Chat_gui_run():                                         
+def Chat_gui_run():         
     window = Tk()
     window.maxsize(800, 400)                                # 设置相同的最大最小尺寸，将窗口大小固定
     window.minsize(800, 400)
@@ -107,15 +135,20 @@ def Chat_gui_run():
  
  
             # 用户列表更新，判断新的信息是否为系统消息，暂时没有想到更好的解决方案
-            if content[0:1]=='//':
+            if content[0]=='#':
                 if content[content.find(' ')+1 : content.find(' ')+3]=='进入':
                     user_list.append(content[5:content.find(' ')])
                     var1.set(user_list)
                 if content[content.find(' ')+1 : content.find(' ')+3]=='离开':
                     user_list.remove(content[5:content.find(' ')])
                     var1.set(user_list)
+
+            if content[0:4]=='endre':
+                s.close()
+                break
  
-    threading.Thread(target = read_server, args = (s,)).start()
+    t=threading.Thread(target = read_server, args = (s,))
+    t.start()
  
  
     var2 = StringVar()                                      # 聊天输入口
@@ -133,7 +166,16 @@ def Chat_gui_run():
     #发送按钮
     sendButton = Button(window, text = '>', font=('Fangsong', 22), bg = 'aqua',bd=3, command=sendtext)     
     sendButton.place(x=500, y=305, width = 150, height = 95)
- 
+    
+
+    def window_destory():
+        if tkinter.messagebox.askyesno("关闭确认","确认要离线吗？"):
+            s.send('\exit'.encode('utf-8'))
+            window.destroy()            
+    window.protocol('WM_DELETE_WINDOW', window_destory)
+
+
     window.mainloop()
+    
  
 Login_gui_run()
