@@ -137,10 +137,10 @@ def Chat_gui_run():
             # 用户列表更新，判断新的信息是否为系统消息，暂时没有想到更好的解决方案
             if content[0]=='#':
                 if content[content.find(' ')+1 : content.find(' ')+3]=='上线':
-                    user_list.append(content[5:content.find(' ')])
+                    user_list.append(content[1:content.find(' ')])
                     var1.set(user_list)
                 if content[content.find(' ')+1 : content.find(' ')+3]=='离线':
-                    user_list.remove(content[5:content.find(' ')])
+                    user_list.remove(content[1:content.find(' ')])
                     var1.set(user_list)
 
             if content[0:4]=='endre':
