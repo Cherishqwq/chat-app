@@ -136,10 +136,10 @@ def Chat_gui_run():
  
             # 用户列表更新，判断新的信息是否为系统消息，暂时没有想到更好的解决方案
             if content[0]=='#':
-                if content[content.find(' ')+1 : content.find(' ')+3]=='进入':
+                if content[content.find(' ')+1 : content.find(' ')+3]=='上线':
                     user_list.append(content[5:content.find(' ')])
                     var1.set(user_list)
-                if content[content.find(' ')+1 : content.find(' ')+3]=='离开':
+                if content[content.find(' ')+1 : content.find(' ')+3]=='离线':
                     user_list.remove(content[5:content.find(' ')])
                     var1.set(user_list)
 
@@ -179,3 +179,4 @@ def Chat_gui_run():
     
  
 Login_gui_run()
+#pyinstaller -F -w -i ico.ico example_from_csdn.py

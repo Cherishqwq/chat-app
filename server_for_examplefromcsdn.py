@@ -60,7 +60,7 @@ def read_client(s, nickname):
             socket_list.remove(s)
             user_list.remove(nickname)
             for client in socket_list:                              # 其他套接字通知（即通知其他聊天窗口）
-                client.send(('//'+ nickname + ' 离线').encode('utf-8'))
+                client.send(('#'+ nickname + ' 离线').encode('utf-8'))
             return ''
         return info
     except Exception as e:
@@ -72,7 +72,7 @@ def socket_target(s, nickname):
         s.send(  (  ','.join(user_list)   ).encode('utf-8'))               # 首次推送 将用户列表送给各个套接字，用逗号隔开
         while True:
             content = read_client(s, nickname)                      # 获取用户发送的消息
-            if content == '':#！！无法判断下线
+            if content == '':
                 break
             else:
                 curtime = datetime.now().strftime(ISOTIMEFORMAT)    # 系统时间打印
